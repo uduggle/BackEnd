@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum role {
+  SUPERADMIN
+  ADMIN
+  USER
+}
+
+model user {
+  userId     Int       @id @default(autoincrement())
+  name       String
+  email      String
+  password   String
+  created_at DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  isAdmin    Boolean   @default(false)
+  role       role      @default(USER)
+  product    product[]
+  cart       cart[]
+}
+
+model category {
+  catId    Int    @id @default(autoincrement())
+  cat_type String @unique
+
+  product     product[]
+  subcategory subcategory[]
+}
+
+model subcategory {
+  subId       Int      @id @default(autoincrement())
+  subename    String   @unique
+  subimage    String
+  discription String?
+  isDeleted   Boolean  @default(false)
+  cat_catId   Int
+  category    category @relation(fields: [cat_catId], references: [catId])
+}
+
+model product {
+  proId          Int        @id @default(autoincrement())
+  proname        String
+  proStock       Int
+  proPrice       Decimal
+  proimage       String
+  proDescription String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  isDeleted      Boolean    @default(false)
+  catId          Int
+  category       category   @relation(fields: [catId], references: [catId])
+  autherId       Int
+  user           user       @relation(fields: [autherId], references: [userId])
+  cartItem       cartItem[]
+  
+  order          order[]
+}
+
+model cart {
+  cartid     Int        @id @default(autoincrement())
+  careatedAt DateTime   @default(now())
+  updateAt   DateTime   @updatedAt
+  autherId   Int
+  user       user       @relation(fields: [autherId], references: [userId])
+  cartItem   cartItem[]
+  order      order[]
+}
+
+model cartItem {
+  cartItemId Int      @id @default(autoincrement())
+  careatedAt DateTime @default(now())
+  updateAt   DateTime @updatedAt
+  cartId     Int
+  cart       cart     @relation(fields: [cartId], references: [cartid])
+  porid      Int
+  product    product  @relation(fields: [porid], references: [proId])
+}
+
+
+
+model order {
+  or_id     Int       @id @default(autoincrement())
+  or_name   String
+  or_image  String
+  or_price  Decimal
+  or_quant  Int
+  isDeleted Boolean   @default(false)
+  manuid    Int
+  proid     Int
+  cartId    Int
+  product   product   @relation(fields: [proid], references: [proId])
+  cart      cart      @relation(fields: [cartId], references: [cartid])
+  payment   payment[]
+}
+
+model payment {
+  pay_id      Int     @id @default(autoincrement())
+  or_name     String
+  or_quantity Int
+  or_price    Decimal
+  totalPrice  Decimal
+  isPaid      Boolean @default(false)
+  orderid     Int
+  order       order   @relation(fields: [orderid], references: [or_id])
+}
+
+// model expenses {
+ 
+ 
+// }
+
+// model income {
+
+// }
+
+// model Delivery {
+
+// }
